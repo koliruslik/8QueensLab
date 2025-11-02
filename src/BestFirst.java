@@ -4,6 +4,8 @@ public class BestFirst {
     private PriorityQueue<BFSNode> openSet;
     private Map<Bitboard, Integer> visited;
 
+    private int maxNodesInMemory = 0;
+    private int totalVisitedNodes = 0;
     private int nodesVisited = 0;
     private int solutionDepth = -1;
     private long elapsedTimeMs = 0;
@@ -18,6 +20,26 @@ public class BestFirst {
         search(startBoard, false);
     }
 
+    public int getMaxNodesInMemory() {
+        return maxNodesInMemory;
+    }
+
+    public int getTotalVisitedNodes() {
+        return totalVisitedNodes;
+    }
+
+    public int getNodesVisited() {
+        return nodesVisited;
+    }
+
+    public int getSolutionDepth() {
+        return solutionDepth;
+    }
+
+    public long getElapsedTimeMs() {
+        return elapsedTimeMs;
+    }
+
     public void search(Bitboard startBoard, boolean verbose) {
         this.verbose = verbose;
         long startTime = System.nanoTime();
@@ -25,11 +47,18 @@ public class BestFirst {
         BFSNode startNode = new BFSNode(null, startBoard, 0, null);
         openSet.clear();
         visited.clear();
+        nodesVisited = 0;
+        solutionDepth = -1;
+        maxNodesInMemory = 0;
 
         openSet.add(startNode);
         visited.put(startBoard, 0);
 
         while (!openSet.isEmpty()) {
+            if(openSet.size() > maxNodesInMemory) {
+                maxNodesInMemory = openSet.size();
+            }
+
             BFSNode currentNode = openSet.poll();
             nodesVisited++;
 
@@ -50,18 +79,21 @@ public class BestFirst {
             int currentDepth = currentNode.getDepth();
 
             if (isGoal(currentBoard)) {
+                totalVisitedNodes = visited.size();
                 solutionDepth = currentDepth;
                 long endTime = System.nanoTime();
                 elapsedTimeMs = (endTime - startTime) / 1_000_000;
 
-                currentBoard.print();
+                if (verbose) {
+                    currentBoard.print();
 
-                printSolutionPath(currentNode);
+                    printSolutionPath(currentNode);
 
-                System.out.println("=== Goal is achieved ===");
-                System.out.println("Nodes visited: " + nodesVisited);
-                System.out.println("Solution depth: " + solutionDepth);
-                System.out.printf("Elapsed time: %.2f ms%n", elapsedTimeMs + 0.0);
+                    System.out.println("=== Goal is achieved ===");
+                    System.out.println("Nodes visited: " + nodesVisited);
+                    System.out.println("Solution depth: " + solutionDepth);
+                    System.out.printf("Elapsed time: %.2f ms%n", elapsedTimeMs + 0.0);
+                }
                 return;
             }
 
@@ -82,6 +114,7 @@ public class BestFirst {
                 }
             }
         }
+        totalVisitedNodes = visited.size();
 
         long endTime = System.nanoTime();
         elapsedTimeMs = (endTime - startTime) / 1_000_000;

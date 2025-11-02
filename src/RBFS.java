@@ -1,22 +1,52 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class RBFS {
     private int nodesVisited = 0;
+    private int maxNodesInMemory = 0;
     private int solutionDepth = -1;
     private long elapsedTimeMs = 0;
 
+    private Set<Bitboard> visited = new HashSet<>();
     private BFSNode solutionNode = null;
     private boolean verbose = false;
+
+    public int getNodesVisited() {
+        return nodesVisited;
+    }
+
+    public int getMaxNodesInMemory() {
+        return maxNodesInMemory;
+    }
+
+    public int getSolutionDepth() {
+        return solutionDepth;
+    }
+
+    public long getElapsedTimeMs() {
+        return elapsedTimeMs;
+    }
+
+    public BFSNode getSolutionNode() {
+        return solutionNode;
+    }
+
+    public int getTotalVisitedNodes() {
+        return visited.size();
+    }
 
     public void search(Bitboard startBoard) {
         search(startBoard, false);
     }
 
     public void search(Bitboard startBoard, boolean verbose) {
+        visited.clear();
         this.verbose = verbose;
+        nodesVisited = 0;
+        solutionDepth = -1;
+        elapsedTimeMs = 0;
+        maxNodesInMemory = 0;
+        solutionNode = null;
+
         long startTime = System.nanoTime();
 
         BFSNode startNode = new BFSNode(null, startBoard, 0, null);
@@ -29,13 +59,15 @@ public class RBFS {
 
         if (solutionNode != null) {
             solutionDepth = solutionNode.getDepth();
-            solutionNode.getBoard().print();
-            printSolutionPath(solutionNode);
+            if (verbose) {
+                solutionNode.getBoard().print();
+                printSolutionPath(solutionNode);
 
-            System.out.println("=== Goal is achieved ===");
-            System.out.println("Nodes visited: " + nodesVisited);
-            System.out.println("Solution depth: " + solutionDepth);
-            System.out.printf("Elapsed time: %.2f ms%n", elapsedTimeMs + 0.0);
+                System.out.println("=== Goal is achieved ===");
+                System.out.println("Nodes visited: " + nodesVisited);
+                System.out.println("Solution depth: " + solutionDepth);
+                System.out.printf("Elapsed time: %.2f ms%n", elapsedTimeMs + 0.0);
+            }
         } else {
             System.out.println("=== Solution not found ===");
             System.out.println("Nodes visited: " + nodesVisited);
@@ -43,9 +75,14 @@ public class RBFS {
         }
     }
 
+
     private float rbfs(BFSNode node, float f_limit) {
+        visited.add(node.getBoard());
         nodesVisited++;
 
+        if(node.getDepth() > maxNodesInMemory) {
+            maxNodesInMemory = node.getDepth();
+        }
         if (verbose) {
             System.out.printf("Visited node at depth %d with priority %d, f_limit=%.2f%n",
                     node.getDepth(), node.getPriority(), f_limit);
